@@ -1,0 +1,182 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}LE HIBOU | Room {{ chatroomDetails.room[0].name }}{% endblock %}
+{% block navbar %} {% endblock %}
+
+{% block body %}
+    <style>
+        .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
+        .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
+    </style>
+
+    <div class="example-wrapper">
+        <p>Channel <b>#{{ chatroomDetails.room[0].name }}</b> :</p>
+
+        <div class="instantMessages">
+            {% if  chatroomDetails.Messages is empty %}
+                <p class="text-center default-msg mt-md-5 mt-sm-5">Don't be shy... Start the discussion :)</p>
+            {% else %}
+                {%for message in chatroomDetails.Messages %}
+                    <div class="card mb-3" style="max-width: 540px;">
+                        <div class="row g-0 {% if message.author.id is same as (me) %}bg-primary text-white{% else %}bg-light{% endif %}">
+                            {% if message.author.id is not same as (me) %}
+                                <div class="col-md-4">
+                                    <img src="{{ message.author.avatar }}" class="img-fluid rounded-start" alt="{{ message.author.nickname }}">
+                                </div>
+                            {% endif %}
+                            <div class="col-md-8">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ message.author.nickname }}</h5>
+                                    <p class="card-text right">{{ message.body }}</p>
+                                    <p class="card-text"><small class="text-dark">{{ message.date|date('Y-m-d H:m:s') }}</small></p>
+                                </div>
+                            </div>
+                            {% if message.author.id is same as (me) %}
+                                <div class="col-md-4">
+                                    <img src="{{ message.author.avatar }}" class="img-fluid rounded-start float-right" alt="{{ message.author.nickname }}">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="post" name="messenger" id="messenger" action="{{ path('manageMessage') }}">
+        <div class="form-group">
+            <label for="messageTextArea">Type your message here :</label>
+            <textarea class="form-control" id="instantMessage" name="instantMessage" rows="3"></textarea>
+            <button type="submit" class="btn btn-primary mt-3 text-right">Send</button>
+        </div>
+    </form>
+    <form action="{{ path('room') }}">
+        <button class="btn btn-success mb-3">Back to room selection</button>
+    </form>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            updateFeed();
+
+            let chatDiv = document.querySelector('.instantMessages');
+            scrollToLastMessage();
+
+            let form = document.getElementById('messenger');
+            function handleForm(event) {
+                event.preventDefault();
+            }
+
+            form.addEventListener('submit', handleForm);
+
+            const submit = document.querySelector('button');
+
+            submit.onclick = e => {
+                const message = document.getElementById('instantMessage');
+                const data = {
+                    'body': message.value,
+                    'room': {{ chatroomDetails.room[0].id }},
+                    'author': {{ me }}
+                }
+
+                fetch('/manageInstantMessage', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                }).then((response) => response.json()
+                    .then(function(data) {
+                        removeWelcomeMessage();
+                        updateDomFeed(data, true);
+                    })
+                );
+            }
+
+            function scrollToLastMessage() {
+                chatDiv.scrollTop = chatDiv.scrollHeight + 15
+            }
+
+            function updateDomFeed(data, isItMe) {
+                if(isItMe) {
+                    addMyMessageToDom(data);
+                } else {
+                    addFreshMessageToDom(data);
+                }
+
+                scrollToLastMessage();
+                document.getElementById("instantMessage").value="";
+            }
+
+            function updateFeed() {
+                setInterval(function(){
+                    let roomId = {{ chatroomDetails.room[0].id }};
+
+                    fetch('/getLastMessages/'+roomId, {
+                        method: 'POST',
+                        body: JSON.stringify(roomId)
+                    }).then((response) => response.json()
+                        .then(function(datas) {
+                            if(datas.length > 0) {
+                                datas.forEach(element => updateDomFeed(element, false));
+                            }
+                        })
+                    );
+                }, 5000);
+            }
+
+            function addMyMessageToDom(data) {
+                removeWelcomeMessage();
+                dateMsg = data.message.date.date;
+                dateMsg = dateMsg.substring(0, dateMsg.indexOf('.'));
+
+                document.querySelector('.instantMessages:last-child').insertAdjacentHTML(
+                    'beforeend',
+                    '<div class="card mb-3" style="max-width: 540px;">'+
+                        `<div class="row g-0 bg-primary text-white">`+
+                            `<div class="col-md-8">`+
+                                `<div class="card-body">`+
+                                    `<h5 class="card-title">${data.author.nickname}</h5>`+
+                                    `<p class="card-text right">${data.message.body}</p>`+
+                                    `<p class="card-text"><small class="text-dark">${dateMsg}</small></p>`+
+                                `</div>`+
+                            `</div>`+
+                            `<div class="col-md-4">`+
+                                `<img src="${data.author.avatar}" class="img-fluid rounded-start float-right" alt="${data.author.nickname}">`+
+                            `</div>`+
+                        `</div>`+
+                    `</div>`
+                );
+            }
+
+            function addFreshMessageToDom(data) {
+                removeWelcomeMessage();
+                dateMsg = data.message.date.date;
+                dateMsg = dateMsg.substring(0, dateMsg.indexOf('.'));
+
+                document.querySelector('.instantMessages:last-child').insertAdjacentHTML(
+                    'beforeend',
+                    '<div class="card mb-3" style="max-width: 540px;">'+
+                        `<div class="row g-0">`+
+                            `<div class="col-md-4">`+
+                                `<img src="${data.author.avatar}" class="img-fluid rounded-start float-right" alt="${data.author.nickname}">`+
+                            `</div>`+
+                            `<div class="col-md-8">`+
+                                `<div class="card-body">`+
+                                    `<h5 class="card-title">${data.author.nickname}</h5>`+
+                                    `<p class="card-text right">${data.message.body}</p>`+
+                                    `<p class="card-text"><small class="text-dark">${dateMsg}</small></p>`+
+                                `</div>`+
+                            `</div>`+
+                        `</div>`+
+                    `</div>`
+                );
+            }
+
+            function removeWelcomeMessage() {
+                const elements = document.getElementsByClassName("default-msg");
+                while(elements.length > 0){
+                    elements[0].parentNode.removeChild(elements[0]);
+                }
+            }
+        })
+    </script>
+{% endblock%}

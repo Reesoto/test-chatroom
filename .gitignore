@@ -1,0 +1,4 @@
+.idea
+.idea/*
+logs/nginx/*
+database/data/*

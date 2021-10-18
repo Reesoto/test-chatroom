@@ -1,0 +1,84 @@
+@import "~bootstrap/scss/bootstrap";
+
+body {
+    background-color: #ff7d6d;
+
+    .base-block {
+        background-color: white;
+        padding: 20px;
+
+        h1 {
+            color: #00274b;
+            margin-bottom: 60px;
+            text-align: center;
+            margin-top: 1em;
+        }
+        h2 {
+            color: #00274b;
+            margin-bottom: 60px;
+            margin-left: 7em;
+            margin-right: 7em;
+        }
+        img {
+            margin:auto;
+            display: block;
+        }
+        p {
+            text-align: justify;
+            margin-left: 10em;
+            margin-right: 10em;
+        }
+        .blankspace {
+            height: 30px;
+            width: 1px;
+        }
+    }
+}
+
+.connect {
+    text-align: right;
+    margin: 15px;
+}
+
+.container {
+    background-color: #FFF;
+    border-radius: 15px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.container form {
+    margin: 20px;
+}
+
+.instantMessages {
+    max-height: 600px;
+    min-height: 200px;
+    overflow: auto;
+    border: 1px solid lightgrey;
+    border-radius: 5px;
+}
+
+.instantMessages .card {
+    margin:auto;
+}
+
+.card-deck {
+    max-width: 300px;
+}
+
+.card .me {
+    background-color: light-blue;
+}
+
+.card .row {
+    background-color: #DEDEDE;
+}
+
+.code {
+    color: lightgreen;
+    background-color: #000;
+    font-family: Consolas;
+    font-size: 20px;
+    padding:10px;
+}
